@@ -81,6 +81,9 @@ export function ParkingApp() {
       const restored = saved ? restoreDemoStore(JSON.parse(saved)) : createInitialStore()
       setStore(restored)
       const requestedScreen = parseScreen(window.location.hash)
+      if (window.location.hash.startsWith("#/")) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${requestedScreen ? `#${requestedScreen}` : ""}`)
+      }
       if (requestedScreen && restored.activeRole && roleCanOpen(restored.activeRole, requestedScreen)) setScreen(requestedScreen)
       else if (restored.activeRole) setScreen(roleDefaultScreen(restored.activeRole))
       else if (requestedScreen) setScreen(requestedScreen)
@@ -125,7 +128,7 @@ export function ParkingApp() {
   }, [hydrated, store.activeRole])
 
   useEffect(() => {
-    if (hydrated && store.activeRole && roleCanOpen(store.activeRole, screen)) window.history.replaceState(null, "", `#/${screen}`)
+    if (hydrated && store.activeRole && roleCanOpen(store.activeRole, screen)) window.history.replaceState(null, "", `#${screen}`)
   }, [hydrated, screen, store.activeRole])
 
   const activeRole = store.activeRole
