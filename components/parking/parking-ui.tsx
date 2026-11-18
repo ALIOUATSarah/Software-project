@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent, type ReactNode } from "react"
+import { useRef, useState, type FormEvent, type ReactNode } from "react"
 import {
   ArrowLeft, ArrowRight, Bell, CalendarDays, CarFront, Check, CheckCircle2, CircleAlert,
   Clock3, Edit3, MapPin, ParkingCircle, Plus, RotateCcw, Search, ShieldCheck, Timer,
@@ -90,12 +90,24 @@ export function DemoControls({ time, arrivalWindowMinutes, onSelectTime, onReset
   onSimulateConflict: () => void
   conflictMessage: string
 }) {
+  const resetDialogRef = useRef<HTMLDialogElement>(null)
+
   return (
     <section className="demo-controls" id="demo-controls" aria-label="Shared demo controls">
       <div className="demo-controls-heading"><div className="demo-controls-icon"><Timer size={17} /></div><div><strong>Presenter controls</strong><span>Time, booking conflicts, and reset affect every demo role.</span></div><span className="demo-date">{formatDate(DEMO_DATE)}</span></div>
       <div className="demo-controls-bottom"><div className="preset-group" role="group" aria-label="Simulated time presets">{TIME_PRESETS.map((preset) => <button key={preset} className={`preset-button ${time === preset ? "active" : ""}`} type="button" onClick={() => onSelectTime(preset)} aria-pressed={time === preset}>{formatTime(preset)}</button>)}</div><button type="button" className="button button-race" onClick={onSimulateConflict}><CarFront size={15} /> Simulate booking conflict</button></div>
-      <div className="demo-controls-footer"><p className="demo-hint">{formatTime("10:15")} is the inclusive {arrivalWindowMinutes}-minute arrival deadline; {formatTime("10:16")} expires a booking that started at {formatTime("10:00")}.</p><button className="reset-demo" type="button" onClick={onReset}><RotateCcw size={14} /> Reset demo</button></div>
+      <div className="demo-controls-footer"><p className="demo-hint">{formatTime("10:15")} is the inclusive {arrivalWindowMinutes}-minute arrival deadline; {formatTime("10:16")} expires a booking that started at {formatTime("10:00")}.</p><button className="reset-demo" type="button" onClick={() => { const dialog = resetDialogRef.current; if (dialog && !dialog.open) dialog.showModal() }}><RotateCcw size={14} /> Reset demo</button></div>
       {conflictMessage && <p className="demo-feedback" role="status">{conflictMessage}</p>}
+      <dialog ref={resetDialogRef} className="reset-dialog" aria-labelledby="reset-demo-title" aria-describedby="reset-demo-description">
+        <div className="reset-dialog-copy">
+          <h2 id="reset-demo-title">Reset demo data?</h2>
+          <p id="reset-demo-description">This clears changes across every demo role, including bookings, notifications, and closures, and restores the original campus data. This action cannot be undone.</p>
+        </div>
+        <div className="reset-dialog-actions">
+          <button className="button button-secondary" type="button" onClick={() => resetDialogRef.current?.close()}>Cancel</button>
+          <button className="button button-danger-ghost" type="button" onClick={() => { resetDialogRef.current?.close(); onReset() }}>Reset demo</button>
+        </div>
+      </dialog>
     </section>
   )
 }
